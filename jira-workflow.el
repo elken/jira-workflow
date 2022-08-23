@@ -84,19 +84,11 @@ BRANCH-KEY is expected as 'BK-3614 Make the text colour red'"
          (harvest-code (prog1 (with-current-buffer buffer
                                 (hack-dir-local-variables)
                                 jira-workflow-harvest-code)
-                         (kill-buffer buffer))))
-    (unless harvest-code
-      (save-window-excursion
-        (setq-local harvest-code (read-from-minibuffer "Add a Harvest code: "))
-        (modify-dir-local-variable
-         nil
-         'jira-workflow-harvest-code
-         harvest-code
-         'add-or-replace)
-        (save-buffer)
-        (kill-current-buffer)
-        harvest-code))
-    harvest-code))
+                         (kill-buffer buffer)))
+         (prompt (format "Add a Harvest code%s: " (when harvest-code (format " (default %s)" harvest-code)))))
+    (read-from-minibuffer prompt nil nil t nil harvest-code)))
+
+(jira-workflow--get-harvest-code "~/build/coreblue/bk/mobile-app")
 
 (defun jira-workflow--notes->permalink (notes)
   "Get a valid permalink from NOTES."
