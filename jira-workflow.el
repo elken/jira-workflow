@@ -99,7 +99,7 @@ BRANCH-KEY is expected as 'BK-3614 Make the text colour red'"
 This is done by downcasing and converting non-alpha chars to dashes."
   (downcase
    (seq-reduce
-    (lambda(accum item)
+    (lambda (accum item)
       (replace-regexp-in-string (car item) (cdr item)  accum))
     '(("[^[:alnum:]]" . "-")
       ("--+"          . "-")
@@ -134,11 +134,17 @@ most cases everything should be at the top."
                      '(key) '(fields summary)))
             (ticket-name (completing-read "Select issue to branch: " (mapcar #'car issues) nil t nil jira-workflow--ticket-history)))
       (cons ticket-name
-        (cons board (cdr (assoc ticket-name issues))))))
+            (cons board (cdr (assoc ticket-name issues))))))
 
 ;;;###autoload
 (defun jira-workflow-create-branch ()
-  "Create a branch for a project based on completions."
+  "The main entry point.
+Prompt for a board, ticket and a project and do the following:
+- Pull `jira-workflow-default-branch' for that project
+- Create a properly named branch in that project
+- Start a timer on `jira-workflow-timer-backend'
+- Move the issue into In Progress on jira
+- Switch to a workspace for that ticket"
   (interactive)
   (when-let* ((ticket (jira-workflow--get-ticket))
               (board (cadr ticket))
