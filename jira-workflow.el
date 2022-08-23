@@ -205,7 +205,8 @@ Run interactively to prompt for a ticket to use with prefix ARG."
   (interactive (list (jira-workflow--get-ticket) current-prefix-arg))
   (pcase jira-workflow-timer-backend
     ('harvest
-     (jira-workflow--start-harvest-timer ticket))))
+     (jira-workflow--start-harvest-timer ticket))
+    (_ (user-error "Invalid backend '%s' selected, no timer created" jira-workflow-timer-backend))))
 
 (provide 'jira-workflow)
 ;;; jira-workflow.el ends here
