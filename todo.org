@@ -1,14 +1,22 @@
 * Inbox
+** DONE Create image cache
+CLOSED: [2022-08-27 Sat 16:49]
+Now we're adding the logos for tickets/boards, downloading these every time will be very costly.
+
+Using a disk cache should suffice, probably in /tmp as this doesn't need to live forever. It's fine to compute once in a blue moon
+
+[[file:~/build/elisp/jira-workflow/jira-workflow.el::;; :affixation-function jira-workflow--ticket-prefix-function]]
 ** TODO Support workspace creation/movement
 
 [[file:~/build/elisp/jira-workflow/jira-workflow.el::interactive]]
 ** TODO Handle paging for sprints
 
 [[file:~/build/elisp/jira-workflow/jira-workflow.el][file:~/build/elisp/jira-workflow/jira-workflow.el]]
-** TODO Add README
+** INPROG Add README
 
 [[file:~/build/elisp/jira-workflow/jira-workflow.el][file:~/build/elisp/jira-workflow/jira-workflow.el]]
-** TODO Make timer check for a correct entry first
+** DONE Make timer check for a correct entry first
+CLOSED: [2022-08-28 Sun 12:56]
 Basically just anything that has the external reference
 
 [[file:~/build/elisp/jira-workflow/jira-workflow.el][file:~/build/elisp/jira-workflow/jira-workflow.el]]
