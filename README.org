@@ -7,7 +7,7 @@
 
 jira-workflow is a poorly-named attempt to automate most of my day-to-day JIRA usage, because computers are better are thinking than I am.
 
-This package is _**VERY**_ much work-in-progress and while a lot of the foundation is standardized the exposed API is subject to change, as it's focused around my specific usage.
+This package is *VERY* much work-in-progress and while a lot of the foundation is standardized the exposed API is subject to change, as it's focused around my specific usage.
 
 * Install
 ** Standard
