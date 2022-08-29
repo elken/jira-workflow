@@ -123,17 +123,48 @@ Use JOIN-CHAR to format a prompt for multiple keys."
   "Get a board from a TICKET."
   (map-nested-elt ticket '(fields project)))
 
-(defun jira-workflow--get-harvest-code (project)
-  "For a given PROJECT, get the harvest code or prompt to add one."
-  (let* ((default-directory project)
-         (enable-local-variables :all)
-         (buffer (find-file-noselect default-directory))
-         (harvest-code (prog1 (with-current-buffer buffer
-                                (hack-dir-local-variables)
-                                jira-workflow-harvest-code)
-                         (kill-buffer buffer)))
-         (prompt (format "Add a Harvest code%s: " (if harvest-code (format " (default %s)" harvest-code) ""))))
-    (read-from-minibuffer prompt nil nil t nil harvest-code)))
+(defun jira-workflow-read-harvest-project (project-dir)
+  "For a given PROJECT-DIR, get the harvest codes or prompt to add one."
+  (reaper-with-buffer
+   (reaper-ensure-project-tasks)
+   (let* ((default-directory project-dir)
+          (enable-local-variables :all)
+          (buffer (find-file-noselect default-directory))
+          (harvest-code (prog1 (with-current-buffer buffer
+                                 (hack-dir-local-variables)
+                                 jira-workflow-harvest-code)
+                          (kill-buffer buffer)))
+          (default-project '())
+          (projects (cl-loop
+                     for project in reaper-project-tasks
+                     collect
+                     (progn
+                       (let ((harvest-cons
+                              (cons
+                               (format
+                                "%s (%s)"
+                                (cdr (assoc :name (cdr project)))
+                                (cdr (assoc :code (cdr project))))
+                               (cdr project))))
+                         (when (string= harvest-code (cdr (assoc :code project)))
+                           (setq default-project harvest-cons))
+                         harvest-cons))))
+          (project (cdr (assoc (completing-read "Select Harvest project: " projects nil t nil nil default-project) projects)))
+          (tasks (cl-loop
+                  for task in (cdr (assoc :tasks project))
+                  collect
+                  (cons (cdr task) (car task))))
+          (task-id (cdr (assoc (completing-read "Select Harvest task: " tasks nil t) tasks))))
+     (save-window-excursion
+       (modify-dir-local-variable
+        nil
+        'jira-workflow-harvest-code
+        (cdr (assoc :code project))
+        'add-or-replace)
+       (save-buffer)
+       (kill-current-buffer)
+       harvest-code)
+     (cons task-id project))))
 
 (defun jira-workflow--key->permalink (issue-key)
   "Get a valid permalink from ISSUE-KEY."
@@ -369,15 +400,11 @@ Optionally prompt for a board when ARG is set."
   "Start a timer in harvest against TICKET and PROJECT."
   (reaper-with-buffer
    (reaper-ensure-project-tasks)
-   (let* ((code (jira-workflow--get-harvest-code project))
+   (let* ((harvest-cons (jira-workflow-read-harvest-project project))
           (id (map-nested-elt ticket '(id)))
           (notes (map-nested-elt ticket '(fields summary)))
-          (harvest-project (cdar (-filter (lambda (task)
-                                            (string= (cdr (assoc :code (cdr task))) code))
-                                          reaper-project-tasks)))
-          (task-id (cdr (assoc "Development" (mapcar (lambda (task)
-                                                       (cons (cdr task) (car task)))
-                                                     (alist-get :tasks harvest-project)))))
+          (harvest-project (cdr harvest-cons))
+          (task-id (car harvest-cons))
           (external_reference (make-hash-table :test 'equal))
           (harvest-payload (make-hash-table :test 'equal)))
      (if-let ((entry-id (jira-workflow--get-current-harvest-entry-id task-id id)))
