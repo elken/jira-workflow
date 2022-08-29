@@ -1,0 +1,76 @@
+#+title: jira-workflow
+#+author: Ellis Kenyő
+#+date: 2022-08-28
+#+latex_class: chameleon
+
+#+html: <img src="https://img.shields.io/badge/stage-%CE%B1,%20experimental-red?style=flat-square"></p>
+
+jira-workflow is a poorly-named attempt to automate most of my day-to-day JIRA usage, because computers are better are thinking than I am.
+
+This package is _**VERY**_ much work-in-progress and while a lot of the foundation is standardized the exposed API is subject to change, as it's focused around my specific usage.
+
+* Install
+** Standard
+Clone the repo, add to your load-path
+** MELPA
+Install using your favourite package manager
+** Doom Emacs
+Append the following to the corresponding file:
+
+*** =packages.el=
+#+begin_src emacs-lisp
+(package! jira-workflow
+  :recipe (:type github :repo "elken/jira-workflow"))
+#+end_src
+
+*** =config.el=
+#+begin_src emacs-lisp
+(use-package! jira-workflow
+  :custom
+  (jira-workflow-project-ignorelist '("INTERNAL")) ;; Replace list with whatever you want to ignore
+  (jira-workflow-pretty-ui nil)                    ;; Enabled by default, set to nil for plain completions
+  (jira-workflow-timer-backend 'harvest))          ;; Currently only supports harvest
+#+end_src
+
+* JIRA setup
+Authentication against JIRA is quite simple, all that is needed is adding a row like the bottom to your authinfo file
+
+#+begin_src authinfo
+machine jiraurl.atlassian.net login email@address.com password password/token port 443
+#+end_src
+
+Along with setting the below variables to something valid
+
+#+begin_src emacs-lisp
+(customize-set-variable 'jira-workflow-harvest-service-icon-url "url-for-icon") ;; Create a time entry in harvest, query it through the API to get this URL
+(customize-set-variable 'jiralib-url "https://jiraurl.atlassian.net")           ;; Set this as jiralib needs it and harvest timer needs it to link a time entry to a ticket
+#+end_src
+
+* Usage
+The usages are centered around a couple of central prompts:
+
+- Prompting for a list of boards
+- Prompting for a filtered list of tickets from that board
+
+Whether or not =jira-workflow-pretty-ui= is enabled or not, the behavior is still the same. The only difference is how much information is displayed around the candidates.
+
+I first devised this to handle all tickets across all boards for simplicity, but in terms of actual usage I found myself focused on a single project at a time rather than jumping between multiples, so having to filter all the tickets became tedious.
+
+** =jira-workflow-pretty-ui=
+Enabled by default as it provides a good UI, this option enables a much richer UI; adding things like current sprint information and priority
+to the tickets. See a comparison below
+
+*** Enabled :ATTACH:
+:PROPERTIES:
+:ID:       54cf392b-a5f4-4146-846e-281a908013e8
+:END:
+
+[[file:.github/assets/_20220829_062758screenshot.png]]
+
+*** Disabled :ATTACH:
+:PROPERTIES:
+:ID:       071885de-4595-4be9-afe0-8c3a6cec49e2
+:END:
+
+[[file:.github/assets/_20220829_062837screenshot.png]]
+
