@@ -315,7 +315,7 @@ For each candidate:
   (setq jira-workflow---annotation-cache nil)
   (let* ((boards (jira-workflow--alist->cons
                   (if jira-workflow-project-ignorelist
-                      (-filter (lambda (board)
+                      (-remove (lambda (board)
                                  (member (map-nested-elt board '(location projectKey)) jira-workflow-project-ignorelist))
                                (jiralib-get-boards))
                     (jiralib-get-boards))
