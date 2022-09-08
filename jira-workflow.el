@@ -19,6 +19,7 @@
 ;;; Code:
 
 (require 'jiralib)
+(require 'files-x)
 
 (defgroup jira-workflow nil
   "Settings related to jira-workflow."
@@ -358,7 +359,6 @@ Optionally prompt for a board when ARG is set."
      :action (lambda (project)
                (let* ((default-directory project)
                       (branches (magit-list-local-branches)))
-                 (funcall callback ticket project)
                  (if (length= (-filter (lambda (local-branch)
                                          (string-match-p branch local-branch))
                                        branches)
@@ -367,7 +367,8 @@ Optionally prompt for a board when ARG is set."
                        (magit-checkout jira-workflow-default-branch)
                        (magit-pull-from-pushremote nil)
                        (magit-branch-and-checkout branch jira-workflow-default-branch))
-                   (magit-checkout branch)))))))
+                   (magit-checkout branch))
+                 (funcall callback ticket project))))))
 
 ;;;###autoload
 (defun jira-workflow-start-ticket ()
@@ -387,7 +388,7 @@ Optionally prompt for a board when ARG is set."
                         "GET"
                         (concat
                          (format
-                          "time_entries?task_id=%d&updated_since=%s&external_reference_id=%d"
+                          "time_entries?task_id=%s&updated_since=%s&external_reference_id=%s"
                           task-id
                           (format-time-string "%Y-%m-%d")
                           external-reference-id))
@@ -408,7 +409,7 @@ Optionally prompt for a board when ARG is set."
           (external_reference (make-hash-table :test 'equal))
           (harvest-payload (make-hash-table :test 'equal)))
      (if-let ((entry-id (jira-workflow--get-current-harvest-entry-id task-id id)))
-         (reaper-api "PATCH" (format "time_entries/%d/restart" entry-id) nil (format "[jira-workflow] Restarted timer for %s" notes))
+         (reaper-api "PATCH" (format "time_entries/%s/restart" entry-id) nil (format "[jira-workflow] Restarted timer for %s" notes))
        (puthash "id" id external_reference)
        (puthash "group_id" (cdr (assoc 'id (jira-workflow--ticket->project ticket))) external_reference)
        (puthash "permalink" (jira-workflow--key->permalink (map-nested-elt ticket '(key))) external_reference)
